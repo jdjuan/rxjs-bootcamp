@@ -51,4 +51,39 @@
 
 ## DAY 2 
 
-1. Angular imports
+1. **Cold Observables vs Hot Observables + Producer + Unicast vs Multicast**
+1. **Subject**
+    1. Subject from Unicast (the type of subject determines the multicast behavior)
+        1. To able to use the same object I can use multicast and then later connect.
+        1. If nobody is listening, a hot observable, without RefCount(), would start firing right away.
+        1. With RefCount once there are no subscribers, it becomes cold again
+        1. The difference between publish and refCout, with share(), is that with the latter, once completed, it can start again, which is on the former
+1. **Coding**
+    1. **Create a hot multicast**
+        1. `const subject = new Rx.Subject();`
+        2. `source.subscribe(subject);`
+        3. `export default subject;`
+    1. **Show other types of subjects**
+        1. `const subject = new Rx.BehaviorSubject('_'); // Age || Caching`
+        2. `const subject = new Rx.ReplaySubject(3); // Partido de futbol`
+        3. `const subject = new Rx.AsyncSubject(3); // En qué cerró la bolsa. La diferencia con el last es que el async subject sí me va a retornar el último incluso después de que la secuencia haya terminado`
+    1. **Create a Connectable Observable**
+        1. `source = source.multicast(subject); // ConnectableObservable`
+        2. `isProducing$.subscribe(() => source.connect());`
+    1. **Use publish shorthand**
+        1. `.publish();`
+        1. `isProducing$.subscribe(() => source.connect());`
+    1. **Use Reference Count**
+        1. `.publish().refCount(); // emits when there are subscribers, as long as the observable haven't completed`
+        1. `.publishBehavior('-').refCount();`
+        1. `.publishReplay(3).refCount();`
+        1. `.publishLast().refCount();`
+    1. **Use share to create a hot, multicast, ref count Observable**
+        1. `.share(); // same as publish().refCount() except that after complete it CAN start again once there are new subscribers`
+        1. `.shareReplay(); // SubjectReplay, it won't start again after completion even if it has no subscribers`
+        1. `.shareReplay(1)` === `publishLast().refCount()`
+1. **Real Examples**
+    1. **Angular HTTP request:** Imports + Pipe Operator + Finish notation
+    1. **Caching:** We want to AsyncSubject behavior for HttpRequest, but we want invalidate cache after a while (or no subscriptions available).
+        1. Cache invalidation
+    1. **Cancel Requests:** SwitchMap
